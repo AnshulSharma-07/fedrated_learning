@@ -25,15 +25,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install --no-audit --no-fund
+          fi
 
       - name: Run ML, FedAvg & WebCrypto tests
         run: |
           npx --yes tsx --test src/engine/engine.test.ts
           npx --yes tsx --test src/browserEngine/handler.test.ts
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
       - name: Typecheck and build static GitHub Pages bundle
         run: |
