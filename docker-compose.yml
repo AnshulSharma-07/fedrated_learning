@@ -1,0 +1,86 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: flids
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-in-prod}
+      POSTGRES_DB: flids
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    profiles: ["postgres"]
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-sqlite:///./data/fl_ids_py.db}
+      FL_IDS_JWT_SECRET: ${FL_IDS_JWT_SECRET:-dev-change-this-jwt-secret-min-32-chars}
+      FL_IDS_PAYLOAD_MASTER_KEY: ${FL_IDS_PAYLOAD_MASTER_KEY:-dev-change-this-32-byte-aes-master-secret}
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./.local_keys:/app/.local_keys
+
+  flower-server:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: python -m backend.federated.server --rounds 5 --min-clients 3
+    ports:
+      - "8080:8080"
+    environment:
+      FL_IDS_PAYLOAD_MASTER_KEY: ${FL_IDS_PAYLOAD_MASTER_KEY:-dev-change-this-32-byte-aes-master-secret}
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./.local_keys:/app/.local_keys
+
+  client-hospital:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: python -m client_simulator.client --client-id client-hospital --partition 0 --server flower-server:8080
+    depends_on:
+      - flower-server
+    volumes:
+      - ./data:/app/data
+      - ./.local_keys:/app/.local_keys
+
+  client-fintech:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: python -m client_simulator.client --client-id client-fintech --partition 1 --server flower-server:8080
+    depends_on:
+      - flower-server
+    volumes:
+      - ./data:/app/data
+      - ./.local_keys:/app/.local_keys
+
+  client-campus:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: python -m client_simulator.client --client-id client-campus --partition 2 --server flower-server:8080
+    depends_on:
+      - flower-server
+    volumes:
+      - ./data:/app/data
+      - ./.local_keys:/app/.local_keys
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm run build && npm run start"
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+
+volumes:
+  pgdata:

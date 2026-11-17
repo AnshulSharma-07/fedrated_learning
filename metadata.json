@@ -1,0 +1,6 @@
+{
+  "name": "FL-IDS — Federated Learning for Intrusion Detection",
+  "description": "End-to-end Federated Learning Intrusion Detection System integrating PyTorch/MLP, Random Forest, Logistic Regression, FedAvg, Ed25519 signatures, AES-256-GCM encryption, and a SOC monitoring dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

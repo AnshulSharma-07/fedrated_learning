@@ -1,0 +1,29 @@
+[project]
+name = "fl-ids"
+version = "1.0.0"
+description = "Federated Learning for Intrusion Detection System (FL-IDS) with PyTorch, Flower, and Ed25519/AES-256-GCM cryptography"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "fastapi==0.115.6",
+  "uvicorn[standard]==0.32.1",
+  "pydantic==2.10.3",
+  "sqlalchemy==2.0.36",
+  "pandas==2.2.3",
+  "numpy==2.1.3",
+  "scikit-learn==1.6.0",
+  "torch==2.5.1",
+  "flwr==1.14.0",
+  "joblib==1.4.2",
+  "cryptography==44.0.0",
+  "pyjwt==2.10.1",
+  "python-multipart==0.0.19",
+  "slowapi==0.1.9",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.4", "httpx==0.28.1"]
+postgres = ["psycopg2-binary==2.9.10"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["."]
