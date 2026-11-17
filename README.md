@@ -32,8 +32,8 @@ An end-to-end cybersecurity engineering and research platform combining **Machin
 # 1. Install Node dependencies
 npm install
 
-# 2. Run engine unit tests (ML, FedAvg, Dataset Cleaning, Ed25519/AES-GCM/Replay)
-npx --yes tsx --test src/engine/engine.test.ts
+# 2. Run engine & browser-mode unit tests (ML, FedAvg, Dataset Cleaning, Ed25519/AES-GCM/Replay)
+npx --yes tsx --test src/engine/engine.test.ts src/browserEngine/handler.test.ts
 
 # 3. Start full-stack server (Express API + React/Vite SOC Dashboard on port 3000)
 npm run dev
@@ -42,6 +42,26 @@ npm run dev
 Open `http://localhost:3000` and sign in using the demo credentials shown on the sign-in page:
 - **Admin**: `admin@fl-ids.local` / `Admin@FLIDS2026!`
 - **Analyst**: `analyst@fl-ids.local` / `Analyst@FLIDS2026!`
+
+---
+
+## GitHub Pages Deployment (Static Browser Mode)
+
+FL-IDS runs 100% client-side on **GitHub Pages** without sacrificing the core ML, Federated Learning, or Cryptographic architecture. When built in static mode (`VITE_STATIC_MODE=true`), the frontend routes API calls to an in-browser execution engine (`src/browserEngine/`) powered by:
+- **Real Machine Learning & Federated Learning**: The exact same TypeScript `dataset.ts` cleaner/Dirichlet non-IID partitioner and `ml.ts` models (Random Forest, Logistic Regression, MLP with optional DP-SGD, and FedAvg aggregation) run directly in the browser.
+- **Real Web Crypto API (`crypto.subtle`)**: Ed25519 digital signatures (with automatic ECDSA P-256 fallback if unsupported), AES-256-GCM authenticated encryption with unique 96-bit nonces and AAD binding, canonical SHA-256 digests, and anti-replay protection.
+- **Persistent State**: Models, datasets, federated rounds, alerts, client keys, and audit logs persist in `localStorage` across page reloads.
+
+### Automatic Deployment via GitHub Actions
+1. Push this repository to GitHub (default branch `main`).
+2. In your GitHub repository, open **Settings → Pages** and set **Source** to **GitHub Actions**.
+3. The included workflow (`.github/workflows/deploy-pages.yml`) automatically runs unit tests, TypeScript checks, builds `dist/` with `npm run build:pages`, and deploys to `https://<username>.github.io/<repo>/`.
+
+### Manual Local Build & Preview for GitHub Pages
+```bash
+npm run build:pages
+npx vite preview --port 4173
+```
 
 ---
 

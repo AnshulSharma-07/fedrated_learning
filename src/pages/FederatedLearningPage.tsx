@@ -80,7 +80,12 @@ export function FederatedLearningPage() {
         }),
       });
       setJob(res.job);
-      setStatusMessage('Federated training job started across active clients.');
+      if (res.job.status === 'completed' || res.job.status === 'failed') {
+        await loadAll();
+        setStatusMessage(res.job.message || 'Federated training completed across active clients.');
+      } else {
+        setStatusMessage('Federated training job started across active clients.');
+      }
     } catch (err) {
       setError((err as Error).message);
     }

@@ -419,142 +419,143 @@ function generateSyntheticCicIdsDataset(totalRows = 1200, seed = 42) {
       }
     }
     const pos = (v, min = 0) => Math.max(min, Math.round(v * 100) / 100);
+    const jitter = rng() < 0.14 ? 2.1 : 1;
     let rec;
     if (category === "Benign") {
-      const dur = pos(gaussian(rng, 245e3, 12e4), 1200);
-      const fwd = Math.max(1, Math.round(gaussian(rng, 9, 4)));
-      const bwd = Math.max(1, Math.round(gaussian(rng, 8, 4)));
-      const fLen = pos(gaussian(rng, 165, 55), 40);
-      const bLen = pos(gaussian(rng, 420, 140), 40);
+      const dur = pos(gaussian(rng, 245e3, 155e3 * jitter), 900);
+      const fwd = Math.max(1, Math.round(gaussian(rng, 10, 6 * jitter)));
+      const bwd = Math.max(1, Math.round(gaussian(rng, 8, 5 * jitter)));
+      const fLen = pos(gaussian(rng, 175, 95 * jitter), 28);
+      const bLen = pos(gaussian(rng, 390, 180 * jitter), 20);
       rec = {
         flow_duration: dur,
         total_fwd_packets: fwd,
         total_bwd_packets: bwd,
         fwd_packet_length_mean: fLen,
         bwd_packet_length_mean: bLen,
-        flow_bytes_per_sec: pos((fwd * fLen + bwd * bLen) / (dur / 1e6) + gaussian(rng, 0, 180), 120),
-        flow_packets_per_sec: pos((fwd + bwd) / (dur / 1e6) + gaussian(rng, 0, 4), 2),
-        syn_flag_count: rng() < 0.85 ? 1 : 0,
-        ack_flag_count: Math.max(1, Math.round(gaussian(rng, 7, 2))),
-        rst_flag_count: rng() < 0.06 ? 1 : 0,
-        psh_flag_count: Math.max(0, Math.round(gaussian(rng, 2, 1))),
-        iat_mean: pos(dur / Math.max(1, fwd + bwd) + gaussian(rng, 2500, 1200), 400),
-        init_win_bytes_fwd: rng() < 0.7 ? 29200 : 8192,
-        subflow_fwd_bytes: pos(fwd * fLen + gaussian(rng, 20, 15), 40),
+        flow_bytes_per_sec: pos((fwd * fLen + bwd * bLen) / (dur / 1e6) + gaussian(rng, 0, 2400), 100),
+        flow_packets_per_sec: pos((fwd + bwd) / (dur / 1e6) + gaussian(rng, 0, 35), 2),
+        syn_flag_count: rng() < 0.82 ? 1 : 2,
+        ack_flag_count: Math.max(1, Math.round(gaussian(rng, 7, 4))),
+        rst_flag_count: rng() < 0.12 ? 1 : 0,
+        psh_flag_count: Math.max(0, Math.round(gaussian(rng, 3, 2))),
+        iat_mean: pos(dur / Math.max(1, fwd + bwd) + gaussian(rng, 3500, 2800), 200),
+        init_win_bytes_fwd: rng() < 0.55 ? 29200 : rng() < 0.8 ? 8192 : 64240,
+        subflow_fwd_bytes: pos(fwd * fLen + gaussian(rng, 40, 80), 40),
         label: "Benign"
       };
     } else if (category === "DoS/DDoS") {
-      const dur = pos(gaussian(rng, 18500, 9500), 250);
-      const fwd = Math.max(12, Math.round(gaussian(rng, 68, 22)));
-      const bwd = Math.max(0, Math.round(gaussian(rng, 2, 2)));
-      const fLen = pos(gaussian(rng, 48, 18), 20);
-      const bLen = pos(gaussian(rng, 12, 14), 0);
+      const dur = pos(gaussian(rng, 28e3, 22e3 * jitter), 250);
+      const fwd = Math.max(6, Math.round(gaussian(rng, 52, 26 * jitter)));
+      const bwd = Math.max(0, Math.round(gaussian(rng, 3, 3 * jitter)));
+      const fLen = pos(gaussian(rng, 68, 38 * jitter), 20);
+      const bLen = pos(gaussian(rng, 35, 35 * jitter), 0);
       rec = {
         flow_duration: dur,
         total_fwd_packets: fwd,
         total_bwd_packets: bwd,
         fwd_packet_length_mean: fLen,
         bwd_packet_length_mean: bLen,
-        flow_bytes_per_sec: pos(gaussian(rng, 185e3, 48e3), 25e3),
-        flow_packets_per_sec: pos(gaussian(rng, 3900, 950), 600),
-        syn_flag_count: Math.max(1, Math.round(gaussian(rng, 6, 2))),
-        ack_flag_count: Math.max(0, Math.round(gaussian(rng, 1, 1))),
-        rst_flag_count: Math.max(0, Math.round(gaussian(rng, 2, 1))),
-        psh_flag_count: 0,
-        iat_mean: pos(gaussian(rng, 290, 120), 20),
-        init_win_bytes_fwd: 512,
-        subflow_fwd_bytes: pos(fwd * fLen, 200),
+        flow_bytes_per_sec: pos(gaussian(rng, 155e3, 68e3 * jitter), 8e3),
+        flow_packets_per_sec: pos(gaussian(rng, 3100, 1450 * jitter), 180),
+        syn_flag_count: Math.max(1, Math.round(gaussian(rng, 5, 3))),
+        ack_flag_count: Math.max(0, Math.round(gaussian(rng, 2, 2))),
+        rst_flag_count: Math.max(0, Math.round(gaussian(rng, 2, 1.4))),
+        psh_flag_count: rng() < 0.25 ? 1 : 0,
+        iat_mean: pos(gaussian(rng, 680, 520 * jitter), 20),
+        init_win_bytes_fwd: rng() < 0.7 ? 512 : 8192,
+        subflow_fwd_bytes: pos(fwd * fLen, 160),
         label: "DoS/DDoS"
       };
     } else if (category === "PortScan") {
-      const dur = pos(gaussian(rng, 1850, 850), 80);
-      const fwd = Math.max(1, Math.round(gaussian(rng, 2, 1)));
-      const bwd = Math.max(0, Math.round(gaussian(rng, 1, 1)));
-      const fLen = pos(gaussian(rng, 42, 8), 20);
+      const dur = pos(gaussian(rng, 4500, 3800 * jitter), 80);
+      const fwd = Math.max(1, Math.round(gaussian(rng, 3, 2)));
+      const bwd = Math.max(0, Math.round(gaussian(rng, 1, 1.2)));
+      const fLen = pos(gaussian(rng, 56, 26 * jitter), 20);
       rec = {
         flow_duration: dur,
         total_fwd_packets: fwd,
         total_bwd_packets: bwd,
         fwd_packet_length_mean: fLen,
-        bwd_packet_length_mean: pos(gaussian(rng, 28, 12), 0),
-        flow_bytes_per_sec: pos(gaussian(rng, 44e3, 14e3), 4e3),
-        flow_packets_per_sec: pos(gaussian(rng, 1350, 380), 250),
+        bwd_packet_length_mean: pos(gaussian(rng, 45, 35 * jitter), 0),
+        flow_bytes_per_sec: pos(gaussian(rng, 42e3, 24e3 * jitter), 1800),
+        flow_packets_per_sec: pos(gaussian(rng, 1150, 620 * jitter), 60),
         syn_flag_count: 1,
-        ack_flag_count: 0,
-        rst_flag_count: Math.max(1, Math.round(gaussian(rng, 1.4, 0.5))),
+        ack_flag_count: rng() < 0.35 ? 1 : 0,
+        rst_flag_count: Math.max(0, Math.round(gaussian(rng, 1.2, 0.7))),
         psh_flag_count: 0,
-        iat_mean: pos(gaussian(rng, 620, 220), 40),
-        init_win_bytes_fwd: 1024,
+        iat_mean: pos(gaussian(rng, 980, 650 * jitter), 40),
+        init_win_bytes_fwd: rng() < 0.75 ? 1024 : 8192,
         subflow_fwd_bytes: pos(fwd * fLen, 28),
         label: "PortScan"
       };
     } else if (category === "BruteForce") {
-      const dur = pos(gaussian(rng, 42e4, 95e3), 6e4);
-      const fwd = Math.max(10, Math.round(gaussian(rng, 24, 6)));
-      const bwd = Math.max(8, Math.round(gaussian(rng, 22, 6)));
-      const fLen = pos(gaussian(rng, 118, 22), 60);
-      const bLen = pos(gaussian(rng, 145, 28), 60);
+      const dur = pos(gaussian(rng, 36e4, 14e4 * jitter), 4e4);
+      const fwd = Math.max(6, Math.round(gaussian(rng, 19, 8 * jitter)));
+      const bwd = Math.max(4, Math.round(gaussian(rng, 16, 7 * jitter)));
+      const fLen = pos(gaussian(rng, 132, 45 * jitter), 50);
+      const bLen = pos(gaussian(rng, 185, 75 * jitter), 50);
       rec = {
         flow_duration: dur,
         total_fwd_packets: fwd,
         total_bwd_packets: bwd,
         fwd_packet_length_mean: fLen,
         bwd_packet_length_mean: bLen,
-        flow_bytes_per_sec: pos(gaussian(rng, 14500, 4200), 2e3),
-        flow_packets_per_sec: pos(gaussian(rng, 115, 32), 20),
+        flow_bytes_per_sec: pos(gaussian(rng, 16500, 8200 * jitter), 1800),
+        flow_packets_per_sec: pos(gaussian(rng, 105, 52 * jitter), 15),
         syn_flag_count: 1,
-        ack_flag_count: Math.max(10, Math.round(gaussian(rng, 20, 5))),
-        rst_flag_count: rng() < 0.65 ? 1 : 0,
-        psh_flag_count: Math.max(6, Math.round(gaussian(rng, 12, 3))),
-        iat_mean: pos(gaussian(rng, 9500, 2800), 1200),
-        init_win_bytes_fwd: 29200,
-        subflow_fwd_bytes: pos(fwd * fLen, 800),
+        ack_flag_count: Math.max(4, Math.round(gaussian(rng, 15, 6))),
+        rst_flag_count: rng() < 0.5 ? 1 : 0,
+        psh_flag_count: Math.max(2, Math.round(gaussian(rng, 9, 4))),
+        iat_mean: pos(gaussian(rng, 9200, 4600 * jitter), 900),
+        init_win_bytes_fwd: rng() < 0.8 ? 29200 : 64240,
+        subflow_fwd_bytes: pos(fwd * fLen, 500),
         label: "BruteForce"
       };
     } else if (category === "Botnet") {
-      const dur = pos(gaussian(rng, 92e4, 24e4), 15e4);
-      const fwd = Math.max(5, Math.round(gaussian(rng, 14, 4)));
-      const bwd = Math.max(5, Math.round(gaussian(rng, 14, 4)));
-      const fLen = pos(gaussian(rng, 78, 16), 36);
-      const bLen = pos(gaussian(rng, 92, 18), 36);
+      const dur = pos(gaussian(rng, 68e4, 29e4 * jitter), 9e4);
+      const fwd = Math.max(4, Math.round(gaussian(rng, 12, 5 * jitter)));
+      const bwd = Math.max(4, Math.round(gaussian(rng, 12, 5 * jitter)));
+      const fLen = pos(gaussian(rng, 110, 48 * jitter), 36);
+      const bLen = pos(gaussian(rng, 145, 75 * jitter), 36);
       rec = {
         flow_duration: dur,
         total_fwd_packets: fwd,
         total_bwd_packets: bwd,
         fwd_packet_length_mean: fLen,
         bwd_packet_length_mean: bLen,
-        flow_bytes_per_sec: pos(gaussian(rng, 2600, 900), 300),
-        flow_packets_per_sec: pos(gaussian(rng, 32, 10), 6),
+        flow_bytes_per_sec: pos(gaussian(rng, 5200, 3800 * jitter), 300),
+        flow_packets_per_sec: pos(gaussian(rng, 42, 22 * jitter), 6),
         syn_flag_count: 1,
-        ack_flag_count: Math.max(6, Math.round(gaussian(rng, 13, 3))),
-        rst_flag_count: 0,
-        psh_flag_count: Math.max(5, Math.round(gaussian(rng, 9, 2))),
-        iat_mean: pos(gaussian(rng, 36e3, 8500), 5e3),
-        init_win_bytes_fwd: 65535,
-        subflow_fwd_bytes: pos(fwd * fLen, 300),
+        ack_flag_count: Math.max(3, Math.round(gaussian(rng, 11, 4))),
+        rst_flag_count: rng() < 0.15 ? 1 : 0,
+        psh_flag_count: Math.max(2, Math.round(gaussian(rng, 7, 3))),
+        iat_mean: pos(gaussian(rng, 26e3, 12500 * jitter), 3e3),
+        init_win_bytes_fwd: rng() < 0.65 ? 65535 : 29200,
+        subflow_fwd_bytes: pos(fwd * fLen, 240),
         label: "Botnet"
       };
     } else {
-      const dur = pos(gaussian(rng, 31e4, 85e3), 35e3);
-      const fwd = Math.max(8, Math.round(gaussian(rng, 18, 5)));
-      const bwd = Math.max(6, Math.round(gaussian(rng, 14, 4)));
-      const fLen = pos(gaussian(rng, 520, 110), 220);
-      const bLen = pos(gaussian(rng, 680, 140), 180);
+      const dur = pos(gaussian(rng, 295e3, 125e3 * jitter), 25e3);
+      const fwd = Math.max(5, Math.round(gaussian(rng, 15, 6 * jitter)));
+      const bwd = Math.max(4, Math.round(gaussian(rng, 12, 5 * jitter)));
+      const fLen = pos(gaussian(rng, 410, 165 * jitter), 120);
+      const bLen = pos(gaussian(rng, 540, 210 * jitter), 120);
       rec = {
         flow_duration: dur,
         total_fwd_packets: fwd,
         total_bwd_packets: bwd,
         fwd_packet_length_mean: fLen,
         bwd_packet_length_mean: bLen,
-        flow_bytes_per_sec: pos(gaussian(rng, 62e3, 18e3), 12e3),
-        flow_packets_per_sec: pos(gaussian(rng, 110, 35), 25),
+        flow_bytes_per_sec: pos(gaussian(rng, 52e3, 24e3 * jitter), 8e3),
+        flow_packets_per_sec: pos(gaussian(rng, 98, 45 * jitter), 18),
         syn_flag_count: 1,
-        ack_flag_count: Math.max(8, Math.round(gaussian(rng, 16, 4))),
-        rst_flag_count: 0,
-        psh_flag_count: Math.max(4, Math.round(gaussian(rng, 7, 2))),
-        iat_mean: pos(gaussian(rng, 9800, 3100), 1500),
-        init_win_bytes_fwd: 64240,
-        subflow_fwd_bytes: pos(fwd * fLen, 2200),
+        ack_flag_count: Math.max(4, Math.round(gaussian(rng, 13, 5))),
+        rst_flag_count: rng() < 0.1 ? 1 : 0,
+        psh_flag_count: Math.max(2, Math.round(gaussian(rng, 6, 3))),
+        iat_mean: pos(gaussian(rng, 9800, 4500 * jitter), 1200),
+        init_win_bytes_fwd: rng() < 0.7 ? 64240 : 29200,
+        subflow_fwd_bytes: pos(fwd * fLen, 1200),
         label: "WebAttack"
       };
     }
@@ -2519,7 +2520,7 @@ app.get("/api/overview", requireAuth, (_req, res) => {
        FROM federated_rounds ORDER BY created_at DESC, round_number DESC LIMIT 1`
   ).get();
   const activeModel = db.prepare(
-    `SELECT id, name, architecture, version, accuracy, precision_score, recall_score, f1_score, false_positive_rate, roc_auc
+    `SELECT id, name, architecture, classification_mode, version, accuracy, precision_score, recall_score, f1_score, false_positive_rate, roc_auc
        FROM models WHERE is_active = 1 ORDER BY created_at DESC LIMIT 1`
   ).get();
   const recentAlerts = db.prepare("SELECT * FROM alerts ORDER BY created_at DESC LIMIT 8").all();
